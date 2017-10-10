@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# wildefyr - 2016 (c) MIT
+# set current background and includes logic to blur background
+
+ARGS="$@"
+
+usage() {
+    cat >&2 << EOF
+Usage: $(basename $0) [blur integer]
+EOF
+
+    test $# -eq 0 || exit $1
+}
+
+. wmrc
+
+# check for dups
+test -z "$BACK" && return 0
+test -z "$WALL" && return 0
+test -e "$WALL" || return 1
+
+test $(lsw | wc -l) -eq 0 && BLUR=${1:-0}
+$BACK -blur $BLUR

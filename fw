@@ -1,0 +1,21 @@
+#!/bin/sh
+# focus a window when it is created
+
+wew | while IFS=: read ev wid; do
+    . wmrc
+
+    case $ev in
+        # entering window
+        7) wattr o $wid || fcs $wid && wall;;
+
+        # window creation
+        16) wattr o $wid || corner md $wid && wall;;
+
+        # focus next window when deleting focused window
+        18) wattr $PFW || fcs prev 2>/dev/null
+        test -z "$(lsw)" && wall 0 ;;
+
+        # mapping requests
+        19) wattr o $wid || fcs $wid && wall;;
+    esac
+done

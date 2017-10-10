@@ -1,0 +1,43 @@
+#!/bin/sh
+
+test -z "$DISPLAY" && {
+    printf '%s\n' "The terminal you are on is not connected to an X11 session."
+    exit 1
+}
+
+CONFIGDIR=${CONFIGDIR:-$HOME/etc/wm}
+LAYOUTDIR=${LAYOUTDIR:-$CONFIGDIR/layouts}
+test -d "$LAYOUTDIR" || mkdir -p "$LAYOUTDIR"
+
+WMDIR=${WMDIR:-$HOME/tmp/wm}
+GROUPDIR=${GROUPDIR:-$WMDIR/groups}
+test -d "$GROUPDIR" || mkdir -p "$GROUPSDIR"
+
+EXPANDIR=${EXPANDIR:-$WMDIR/expanded}
+test -d "$EXPANDIR" || mkdir -p "$EXPANDIR"
+
+HOVER=${HOVER:-$WMDIR/hover}
+FSFILE=${FSFILE:-$WMDIR/fullinfo}
+SCREENS=${SCREENS:-$WMDIR/screens}
+WIDLOCK=${WIDLOCK:-$WMDIR/.widlock}
+
+ACTIVE=${ACTIVE:-0x1d2021}
+INACTIVE=${INACTIVE:-0x32302f}
+
+test -f $CONFIGDIR/config && {
+    . $CONFIGDIR/config
+} || {
+    printf '%s\n' "No config file found at ${CONFIGDIR}/config. Killing X11."
+    pkill xinit
+}
+
+PFW="$(pfw || printf '%s\n' "0x00000001")"
+CUR=${2:-"$PFW"}
+
+X=$(wattr x "$CUR" 2> /dev/null)
+Y=$(wattr y "$CUR" 2> /dev/null)
+W=$(wattr w "$CUR" 2> /dev/null)
+H=$(wattr h "$CUR" 2> /dev/null)
+ROOT=$(lsw -r)
+SW=$(wattr w $ROOT)
+SH=$(wattr h $ROOT)

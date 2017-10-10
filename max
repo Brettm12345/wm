@@ -1,0 +1,51 @@
+#!/bin/sh
+
+. wmrc
+
+usage() {
+        echo "usage: $(basename $0) [-mf] wid" >&2
+        exit 1
+}
+
+while getopts hvmpf OPT; do
+    case $OPT in
+        m) MAX=gmax ;;
+        f) MAX=full ;;
+        *) usage ;;
+    esac
+done
+shift $((OPTIND -1))
+
+test -n "$1" && WID=$1 || usage
+
+MAX=${MAX:-full}
+SW=$(( $SW - 2*$BW))
+SH=$(( $SH - 2*$BW ))
+SWM=$(( $SW - 2*$PAD))
+SHM=$(( $SH - 2*$PAD))
+
+is_maxed() {
+    case $MAX in
+        gmax) test "$(wattr wh $WID)" = "$SWM $SHM" && return 0 ;;
+        full) test "$(wattr wh $WID)" = "$SW $SH" && return 0 ;;
+    esac
+
+    return 1
+}
+
+expand_win() {
+    wattr xywhi $WID >> $FSFILE
+    case $MAX in
+        gmax) GEOMETRY=$(printf ''$PAD' '$PAD' %d %d' "$SWM" "$SHM") ;;
+        full) GEOMETRY=$(printf '0 0 %d %d' "$SW" "$SH") ;;
+    esac
+    wtp ${GEOMETRY} ${WID}
+}
+
+collapse_win() {
+    grep -qw $WID $FSFILE && wtp $(grep -w $WID $FSFILE)
+    buffer="$(grep -wv "$WID" "$FSFILE")"
+    test -z "$buffer" 2> /dev/null && rm -f "$FSFILE" || printf '%s\n' "$buffer" > "$FSFILE"
+}
+
+is_maxed && collapse_win || expand_win ;
